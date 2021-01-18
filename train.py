@@ -45,7 +45,9 @@ if opt.fp16:
     model, [optimizer_G, optimizer_D] = amp.initialize(model, [model.optimizer_G, model.optimizer_D], opt_level='O1')             
     model = torch.nn.DataParallel(model, device_ids=opt.gpu_ids)
 else:
-    optimizer_G, optimizer_D = model.module.optimizer_G, model.module.optimizer_D
+    # optimizer_G, optimizer_D = model.module.optimizer_G, model.module.optimizer_D
+    optimizer_G, optimizer_D = model.optimizer_G, model.optimizer_D
+
 
 total_steps = (start_epoch-1) * dataset_size + epoch_iter
 
@@ -72,7 +74,8 @@ for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
 
         # sum per device losses
         losses = [ torch.mean(x) if not isinstance(x, int) else x for x in losses ]
-        loss_dict = dict(zip(model.module.loss_names, losses))
+        # loss_dict = dict(zip(model.module.loss_names, losses))
+        loss_dict = dict(zip(model.loss_names, losses))
 
         # calculate final loss scalar
         loss_D = (loss_dict['D_fake'] + loss_dict['D_real']) * 0.5
